@@ -46,25 +46,21 @@ public class CoinRepository {
 
     }
 
-
     public List<Coin> getByName(String name) {
-        Object[] attr = new Object[]{name};
-        return jdbcTemplate.query(SELECT_BY_NAME, (rs, rowNum) -> {
-            Coin coin = new Coin();
-            coin.setId(rs.getInt("id"));
-            coin.setName(rs.getString("name"));
-            coin.setQuantity(rs.getBigDecimal("quantity"));
-            coin.setPrice(rs.getBigDecimal("price"));
-            coin.setDateTime(rs.getTimestamp("dateTime"));
-
-            return coin;
-        }, attr);
-    }
-
-    public int deleteById(int id) {
-
-        return this.jdbcTemplate.update(DELETE, id);
+        String jpql = "select c from Coin c where c.name like :name";
+        TypedQuery<Coin> query = entityManager.createQuery(jpql, Coin.class);
+        query.setParameter("name", "%"+name+"%");
+        return query.getResultList();
 
     }
+@Transactional
+    public boolean deleteById(int id) {
+        Coin coin = entityManager.find(Coin.class, id);
+        if(!entityManager.contains(coin)){
+          coin = entityManager.merge(coin);
+        }
 
+        entityManager.remove(coin);
+        return true;
+    }
 }

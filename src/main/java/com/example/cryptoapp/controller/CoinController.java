@@ -2,12 +2,10 @@ package com.example.cryptoapp.controller;
 
 import com.example.cryptoapp.entity.Coin;
 import com.example.cryptoapp.repository.CoinRepository;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 @RestController
@@ -45,11 +43,12 @@ public class CoinController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity get(@PathVariable int id) {
+        boolean response = false;
         try {
-            this.coinRepository.deleteById(id);
-            return new ResponseEntity(HttpStatus.OK);
+            response = coinRepository.deleteById(id);
+            return new ResponseEntity(response,HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity(e.getMessage(), HttpStatus.NO_CONTENT);
+            return new ResponseEntity(response, HttpStatus.NO_CONTENT);
         }
 
     }
