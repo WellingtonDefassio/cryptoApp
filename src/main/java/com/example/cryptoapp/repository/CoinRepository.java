@@ -3,54 +3,47 @@ package com.example.cryptoapp.repository;
 import com.example.cryptoapp.dto.CoinTransactionDTO;
 import com.example.cryptoapp.entity.Coin;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import java.util.List;
 
 @Repository
 @EnableConfigurationProperties
 public class CoinRepository {
-    private static String INSERT = "insert into coin (name, datetime, price, quantity) values (?,?,?,?)";
-    private static String SELECT_ALL = "select name, sum(quantity) as quantity from coin group by name";
-    private static String DELETE = "delete from coin where id = ?";
-    private static String SELECT_BY_NAME = "select * from coin where name = ?";
-    private static String UPDATE = "update coin set name = ?, price = ?, quantity = ? where id = ?";
-    private JdbcTemplate jdbcTemplate;
+//    private static String INSERT = "insert into coin (name, datetime, price, quantity) values (?,?,?,?)";
+//    private static String SELECT_ALL = "select name, sum(quantity) as quantity from coin group by name";
+//    private static String DELETE = "delete from coin where id = ?";
+//    private static String SELECT_BY_NAME = "select * from coin where name = ?";
+//    private static String UPDATE = "update coin set name = ?, price = ?, quantity = ? where id = ?";
+//    private JdbcTemplate jdbcTemplate;
 
-    public CoinRepository(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    private EntityManager entityManager;
+
+    public CoinRepository(EntityManager entityManager) {
+        this.entityManager = entityManager;
     }
 
+    @Transactional
     public Coin update(Coin coin) {
-        Object[] attr = new Object[]{
-                coin.getName(),
-                coin.getPrice(),
-                coin.getQuantity(),
-                coin.getId()
-        };
-        jdbcTemplate.update(UPDATE, attr);
+        entityManager.merge(coin);
+
         return coin;
     }
 
+    @Transactional
     public Coin insert(Coin coin) {
-        Object[] attr = new Object[]{
-                coin.getName(),
-                coin.getDateTime(),
-                coin.getPrice(),
-                coin.getQuantity()
-        };
-        jdbcTemplate.update(INSERT, attr);
+        this.entityManager.persist(coin);
         return coin;
     }
 
     public List<CoinTransactionDTO> getAll() {
-        return this.jdbcTemplate.query(SELECT_ALL, (rs, rowNum) -> {
-            CoinTransactionDTO coin = new CoinTransactionDTO();
-            coin.setName(rs.getString("name"));
-            coin.setQuantity(rs.getBigDecimal("quantity"));
-            return coin;
-        });
+        String jpql = "select new com.example.cryptoapp.dto.CoinTransactionDTO(c.name, sum(c.quantity)) from Coin c group by c.name";
+        TypedQuery<CoinTransactionDTO> query = entityManager.createQuery(jpql, CoinTransactionDTO.class);
+        return query.getResultList();
+
     }
 
 

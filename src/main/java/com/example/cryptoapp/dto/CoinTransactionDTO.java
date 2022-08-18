@@ -4,6 +4,11 @@ import java.math.BigDecimal;
 
 public class CoinTransactionDTO {
 
+    public CoinTransactionDTO(String name, BigDecimal quantity) {
+        this.name = name;
+        this.quantity = quantity;
+    }
+
     private String name;
     private BigDecimal quantity;
 
